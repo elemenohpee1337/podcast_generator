@@ -46,7 +46,13 @@ module.exports = async (req, res) => {
       const speakerMatch = line.match(/^(.*?):\s*(.+)$/);
       if (speakerMatch) {
         const speaker = speakerMatch[1].toLowerCase().trim();
-        const content = speakerMatch[2].trim();
+        let content = speakerMatch[2].trim();
+        
+        // Remove stage directions in asterisks (e.g., *laughs*, *dramatic pause*)
+        content = content.replace(/\*[^*]+\*/g, '').trim();
+        
+        // Skip empty lines after removing stage directions
+        if (!content) continue;
         
         // Find matching voice
         let voiceId = voiceMap.default;
@@ -60,7 +66,12 @@ module.exports = async (req, res) => {
         segments.push({ voiceId, text: content });
       } else if (line.trim()) {
         // No speaker label, use default voice
-        segments.push({ voiceId: voiceMap.default, text: line.trim() });
+        let content = line.trim();
+        // Remove stage directions from non-speaker lines too
+        content = content.replace(/\*[^*]+\*/g, '').trim();
+        if (content) {
+          segments.push({ voiceId: voiceMap.default, text: content });
+        }
       }
     }
 
