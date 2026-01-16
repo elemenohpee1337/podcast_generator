@@ -18,10 +18,17 @@ module.exports = async (req, res) => {
   try {
     const { speechifyKey, text } = req.body;
 
+    console.log('Received request:', {
+      hasKey: !!speechifyKey,
+      textLength: text?.length
+    });
+
     if (!speechifyKey || !text) {
-      return res.status(400).json({ error: 'Missing required parameters' });
+      return res.status(400).json({ error: 'Missing required parameters: speechifyKey or text' });
     }
 
+    console.log('Calling Speechify API...');
+    
     const response = await fetch('https://api.sws.speechify.com/v1/audio/speech', {
       method: 'POST',
       headers: {
@@ -36,12 +43,19 @@ module.exports = async (req, res) => {
       }),
     });
 
+    console.log('Speechify response status:', response.status);
+
     if (!response.ok) {
       const errorText = await response.text();
-      return res.status(response.status).json({ error: errorText });
+      console.error('Speechify error:', errorText);
+      return res.status(response.status).json({ 
+        error: `Speechify API error (${response.status}): ${errorText}`,
+        details: errorText 
+      });
     }
 
     const data = await response.json();
+    console.log('Speechify data received:', !!data.audio_data);
     
     if (!data.audio_data) {
       return res.status(500).json({ error: 'No audio data received from Speechify' });
@@ -50,7 +64,10 @@ module.exports = async (req, res) => {
     return res.status(200).json({ audio: data.audio_data });
 
   } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ error: error.message });
+    console.error('Error in generate-audio:', error);
+    return res.status(500).json({ 
+      error: error.message,
+      stack: error.stack 
+    });
   }
 };
