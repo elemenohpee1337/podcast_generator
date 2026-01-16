@@ -306,6 +306,7 @@
 
                 console.log('Calling Claude API via backend...');
                 console.log('API Key present:', !!claudeKey);
+                console.log('Calling URL:', window.location.origin + '/api/generate-script');
                 
                 // Call our Vercel function instead of Netlify
                 const response = await fetch('/api/generate-script', {
@@ -320,6 +321,7 @@
                 });
 
                 console.log('Response status:', response.status);
+                console.log('Response URL:', response.url);
                 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -375,6 +377,10 @@
             btn.disabled = true;
 
             try {
+                console.log('Calling audio API...');
+                console.log('Speechify key present:', !!speechifyKey);
+                console.log('Script length:', currentScript.length);
+                
                 const response = await fetch('/api/generate-audio', {
                     method: 'POST',
                     headers: {
@@ -386,12 +392,17 @@
                     }),
                 });
 
+                console.log('Audio response status:', response.status);
+                
                 if (!response.ok) {
                     const errorData = await response.json();
+                    console.error('Audio API error:', errorData);
                     throw new Error(errorData.error || `API error (${response.status})`);
                 }
 
                 const data = await response.json();
+                console.log('Audio data received:', !!data.audio);
+                
                 const audioBlob = await fetch(`data:audio/mpeg;base64,${data.audio}`).then(r => r.blob());
                 currentAudioUrl = URL.createObjectURL(audioBlob);
                 
@@ -413,7 +424,8 @@
                 `;
                 switchTab('audio');
             } catch (error) {
-                alert('Error generating audio: ' + error.message);
+                console.error('Full audio error:', error);
+                alert('Error generating audio: ' + error.message + '\n\nCheck the console for more details.');
             } finally {
                 btn.innerHTML = 'Convert to Audio';
                 btn.disabled = false;
