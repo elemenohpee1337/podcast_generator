@@ -16,52 +16,55 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { speechifyKey, text } = req.body;
+    const { elevenLabsKey, text } = req.body;
 
     console.log('Received request:', {
-      hasKey: !!speechifyKey,
+      hasKey: !!elevenLabsKey,
       textLength: text?.length
     });
 
-    if (!speechifyKey || !text) {
-      return res.status(400).json({ error: 'Missing required parameters: speechifyKey or text' });
+    if (!elevenLabsKey || !text) {
+      return res.status(400).json({ error: 'Missing required parameters: elevenLabsKey or text' });
     }
 
-    console.log('Calling Speechify API...');
+    console.log('Calling ElevenLabs API...');
     
-    const response = await fetch('https://api.sws.speechify.com/v1/audio/speech', {
+    const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${speechifyKey}`,
+        'Accept': 'audio/mpeg',
         'Content-Type': 'application/json',
+        'xi-api-key': elevenLabsKey,
       },
       body: JSON.stringify({
-        input: text,
-        voice_id: 'henry',
-        audio_format: 'mp3',
-        model: 'simba-english',
+        text: text,
+        model_id: 'eleven_turbo_v2_5',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.8,
+          style: 0.0,
+          use_speaker_boost: true
+        },
       }),
     });
 
-    console.log('Speechify response status:', response.status);
+    console.log('ElevenLabs response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Speechify error:', errorText);
+      console.error('ElevenLabs error:', errorText);
       return res.status(response.status).json({ 
-        error: `Speechify API error (${response.status}): ${errorText}`,
+        error: `ElevenLabs API error (${response.status}): ${errorText}`,
         details: errorText 
       });
     }
 
-    const data = await response.json();
-    console.log('Speechify data received:', !!data.audio_data);
+    const audioBuffer = await response.arrayBuffer();
+    const base64Audio = Buffer.from(audioBuffer).toString('base64');
     
-    if (!data.audio_data) {
-      return res.status(500).json({ error: 'No audio data received from Speechify' });
-    }
+    console.log('Audio generated successfully, size:', base64Audio.length);
 
-    return res.status(200).json({ audio: data.audio_data });
+    return res.status(200).json({ audio: base64Audio });
 
   } catch (error) {
     console.error('Error in generate-audio:', error);
