@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Podcast Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
+    <div id="app" class="p-6">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-3">
+                    <svg class="w-10 h-10 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                    </svg>
+                    <h1 class="text-4xl font-bold text-white">AI Podcast Generator</h1>
+                </div>
+                <button onclick="toggleSettings()" class="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Settings Panel -->
+            <div id="settingsPanel" class="hidden bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-6 border border-white/20">
+                <h2 class="text-xl font-semibold text-white mb-4">API Settings</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-white/80 mb-2">
+                            Claude API Key
+                            <a href="https://console.anthropic.com/" target="_blank" class="ml-2 text-purple-300 hover:text-purple-200 text-sm underline">
+                                (Get your key here)
+                            </a>
+                        </label>
+                        <input type="password" id="claudeKey" placeholder="sk-ant-..." 
+                            class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-400">
+                        <p class="text-white/60 text-xs mt-1">Saved locally in your browser</p>
+                    </div>
+                    <div>
+                        <label class="block text-white/80 mb-2">
+                            Speechify API Key
+                            <a href="https://speechify.com/api" target="_blank" class="ml-2 text-purple-300 hover:text-purple-200 text-sm underline">
+                                (Get your key here)
+                            </a>
+                        </label>
+                        <input type="password" id="speechifyKey" placeholder="Enter your Speechify API key"
+                            class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-400">
+                        <p class="text-white/60 text-xs mt-1">Saved locally in your browser</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                <!-- Tabs -->
+                <div class="flex gap-2 mb-6">
+                    <button onclick="switchTab('content')" id="tab-content" class="tab-button px-6 py-2 rounded-lg font-medium transition-colors bg-purple-500 text-white">
+                        Content
+                    </button>
+                    <button onclick="switchTab('script')" id="tab-script" class="tab-button px-6 py-2 rounded-lg font-medium transition-colors bg-white/10 text-white/60 hover:bg-white/20">
+                        Script
+                    </button>
+                    <button onclick="switchTab('audio')" id="tab-audio" class="tab-button px-6 py-2 rounded-lg font-medium transition-colors bg-white/10 text-white/60 hover:bg-white/20">
+                        Audio
+                    </button>
+                </div>
+
+                <!-- Content Tab -->
+                <div id="content-tab" class="tab-content">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-white mb-2 font-medium">Upload File</label>
+                            <div class="flex items-center gap-4">
+                                <label class="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg cursor-pointer transition-colors">
+                                    <span id="uploadText">Choose File</span>
+                                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" class="hidden" onchange="handleFileUpload(event)">
+                                </label>
+                                <span class="text-white/60 text-sm">Supports PDF, DOC, DOCX, XLS, XLSX</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-white mb-2 font-medium">Or Paste Content</label>
+                            <textarea id="contentText" placeholder="Paste your text, article, or content here..." 
+                                class="w-full h-64 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-400 resize-none"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-white mb-3 font-medium">Podcast Style</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <button onclick="selectStyle('conversation')" data-style="conversation" class="style-button p-4 rounded-lg text-left transition-all bg-purple-500 border-2 border-purple-300">
+                                    <div class="font-semibold text-white">Two-Host Conversation</div>
+                                    <div class="text-sm text-white/70 mt-1">Engaging dialogue between two hosts</div>
+                                </button>
+                                <button onclick="selectStyle('narrator')" data-style="narrator" class="style-button p-4 rounded-lg text-left transition-all bg-white/10 border-2 border-transparent hover:bg-white/20">
+                                    <div class="font-semibold text-white">Solo Narrator</div>
+                                    <div class="text-sm text-white/70 mt-1">Single voice summarizing content</div>
+                                </button>
+                                <button onclick="selectStyle('interview')" data-style="interview" class="style-button p-4 rounded-lg text-left transition-all bg-white/10 border-2 border-transparent hover:bg-white/20">
+                                    <div class="font-semibold text-white">Interview Style</div>
+                                    <div class="text-sm text-white/70 mt-1">Expert being interviewed about the topic</div>
+                                </button>
+                                <button onclick="selectStyle('storytelling')" data-style="storytelling" class="style-button p-4 rounded-lg text-left transition-all bg-white/10 border-2 border-transparent hover:bg-white/20">
+                                    <div class="font-semibold text-white">Storytelling</div>
+                                    <div class="text-sm text-white/70 mt-1">Narrative-driven exploration</div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button onclick="generateScript()" id="generateBtn" 
+                            class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2">
+                            Generate Podcast Script
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Script Tab -->
+                <div id="script-tab" class="tab-content hidden">
+                    <div class="space-y-4">
+                        <div id="scriptContent" class="text-center py-12 text-white/60">
+                            No script generated yet. Go to the Content tab to create one.
+                        </div>
+                        <button onclick="generateAudio()" id="audioBtn" class="hidden w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2">
+                            Convert to Audio
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Audio Tab -->
+                <div id="audio-tab" class="tab-content hidden">
+                    <div id="audioContent" class="text-center py-12 text-white/60">
+                        No audio generated yet. Generate a script and convert it to audio first.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'content';
+        let selectedStyle = 'conversation';
+        let currentScript = '';
+        let currentAudioUrl = '';
+        let pdfFileData = null;
+
+        // Load API keys from localStorage
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('claudeKey').value = localStorage.getItem('claudeApiKey') || '';
+            document.getElementById('speechifyKey').value = localStorage.getItem('speechifyApiKey') || '';
+            
+            // Save API keys on change
+            document.getElementById('claudeKey').addEventListener('change', (e) => {
+                localStorage.setItem('claudeApiKey', e.target.value);
+            });
+            document.getElementById('speechifyKey').addEventListener('change', (e) => {
+                localStorage.setItem('speechifyApiKey', e.target.value);
+            });
+        });
+
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('hidden');
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('bg-purple-500', 'text-white');
+                btn.classList.add('bg-white/10', 'text-white/60');
+            });
+            document.getElementById(`tab-${tab}`).classList.remove('bg-white/10', 'text-white/60');
+            document.getElementById(`tab-${tab}`).classList.add('bg-purple-500', 'text-white');
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`${tab}-tab`).classList.remove('hidden');
+        }
+
+        function selectStyle(style) {
+            selectedStyle = style;
+            document.querySelectorAll('.style-button').forEach(btn => {
+                btn.classList.remove('bg-purple-500', 'border-purple-300');
+                btn.classList.add('bg-white/10', 'border-transparent');
+            });
+            document.querySelector(`[data-style="${style}"]`).classList.remove('bg-white/10', 'border-transparent');
+            document.querySelector(`[data-style="${style}"]`).classList.add('bg-purple-500', 'border-purple-300');
+        }
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Check file size (limit to 5MB to avoid timeouts)
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                alert('File is too large. Please use files smaller than 5MB to avoid processing timeouts. For large documents, try copying and pasting the text instead.');
+                event.target.value = ''; // Clear the file input
+                return;
+            }
+
+            document.getElementById('uploadText').textContent = 'Processing...';
+
+            try {
+                const fileType = file.name.split('.').pop().toLowerCase();
+
+                if (fileType === 'pdf') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    let binary = '';
+                    for (let i = 0; i < uint8Array.length; i++) {
+                        binary += String.fromCharCode(uint8Array[i]);
+                    }
+                    const base64Data = btoa(binary);
+                    pdfFileData = { base64: base64Data, name: file.name };
+                    document.getElementById('contentText').value = `[PDF File: ${file.name}]\nThis PDF will be processed when you generate the script.`;
+                } else if (fileType === 'docx' || fileType === 'doc') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({ arrayBuffer });
+                    document.getElementById('contentText').value = result.value;
+                } else if (fileType === 'xlsx' || fileType === 'xls') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const text = XLSX.utils.sheet_to_csv(firstSheet);
+                    document.getElementById('contentText').value = text;
+                } else {
+                    const text = await file.text();
+                    document.getElementById('contentText').value = text;
+                }
+            } catch (error) {
+                alert('Error reading file: ' + error.message);
+            } finally {
+                document.getElementById('uploadText').textContent = 'Choose File';
+            }
+        }
+
+        async function generateScript() {
+            const contentText = document.getElementById('contentText').value;
+            const claudeKey = document.getElementById('claudeKey').value;
+
+            if (!contentText.trim()) {
+                alert('Please enter or upload content first');
+                return;
+            }
+
+            if (!claudeKey) {
+                alert('Please enter your Claude API key in settings');
+                document.getElementById('settingsPanel').classList.remove('hidden');
+                return;
+            }
+
+            const btn = document.getElementById('generateBtn');
+            btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating Script (this may take 20-30 seconds)...';
+            btn.disabled = true;
+
+            try {
+                const stylePrompts = {
+                    conversation: 'Create an engaging two-host podcast conversation discussing this content. Host 1 should be curious and ask questions, while Host 2 explains and provides insights. Make it natural and conversational with some humor.',
+                    narrator: 'Create a compelling single-narrator podcast script that summarizes and explores this content in an engaging, accessible way.',
+                    interview: 'Create an interview-style podcast where an interviewer asks probing questions and an expert responds with detailed insights about this content.',
+                    storytelling: 'Create a narrative-driven podcast script that tells the story of this content in an engaging, dramatic way.',
+                };
+
+                let messages = [];
+                if (pdfFileData) {
+                    console.log('Sending PDF to backend, size:', pdfFileData.base64.length);
+                    messages = [{
+                        role: 'user',
+                        content: [
+                            {
+                                type: 'document',
+                                source: {
+                                    type: 'base64',
+                                    media_type: 'application/pdf',
+                                    data: pdfFileData.base64,
+                                },
+                            },
+                            {
+                                type: 'text',
+                                text: `${stylePrompts[selectedStyle]}\n\nFormat the script clearly with speaker labels (e.g., "Host 1:", "Host 2:" or "Narrator:"). Make it engaging, conversational, and about 3-5 minutes when read aloud.`,
+                            },
+                        ],
+                    }];
+                    // Keep PDF data for potential retries, clear after successful generation
+                } else {
+                    messages = [{
+                        role: 'user',
+                        content: `${stylePrompts[selectedStyle]}\n\nContent to transform into a podcast:\n${contentText.slice(0, 8000)}\n\nFormat the script clearly with speaker labels (e.g., "Host 1:", "Host 2:" or "Narrator:"). Make it engaging, conversational, and about 3-5 minutes when read aloud.`,
+                    }];
+                }
+
+                console.log('Calling Claude API via backend...');
+                console.log('API Key present:', !!claudeKey);
+                
+                // Call our Vercel function instead of Netlify
+                const response = await fetch('/api/generate-script', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        claudeKey: claudeKey,
+                        messages: messages,
+                    }),
+                });
+
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error:', errorText);
+                    throw new Error(`API returned ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('Response received:', data);
+                
+                if (data.error) {
+                    throw new Error(data.error.message || data.error);
+                }
+
+                currentScript = data.content[0].text;
+                
+                // Clear PDF data after successful generation
+                if (pdfFileData) {
+                    pdfFileData = null;
+                }
+                
+                document.getElementById('scriptContent').innerHTML = `
+                    <div class="bg-white/10 rounded-lg p-6 max-h-96 overflow-y-auto text-left">
+                        <pre class="text-white whitespace-pre-wrap font-sans">${currentScript}</pre>
+                    </div>
+                `;
+                document.getElementById('audioBtn').classList.remove('hidden');
+                switchTab('script');
+            } catch (error) {
+                alert('Error generating script: ' + error.message);
+            } finally {
+                btn.innerHTML = 'Generate Podcast Script';
+                btn.disabled = false;
+            }
+        }
+
+        async function generateAudio() {
+            const speechifyKey = document.getElementById('speechifyKey').value;
+
+            if (!currentScript) {
+                alert('Please generate a script first');
+                return;
+            }
+
+            if (!speechifyKey) {
+                alert('Please enter your Speechify API key in settings');
+                document.getElementById('settingsPanel').classList.remove('hidden');
+                return;
+            }
+
+            const btn = document.getElementById('audioBtn');
+            btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating Audio...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/.netlify/functions/generate-audio', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        speechifyKey: speechifyKey,
+                        text: currentScript,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `API error (${response.status})`);
+                }
+
+                const data = await response.json();
+                const audioBlob = await fetch(`data:audio/mpeg;base64,${data.audio}`).then(r => r.blob());
+                currentAudioUrl = URL.createObjectURL(audioBlob);
+                
+                document.getElementById('audioContent').innerHTML = `
+                    <div class="space-y-4">
+                        <div class="bg-white/10 rounded-lg p-8 text-center">
+                            <svg class="w-16 h-16 text-purple-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                            </svg>
+                            <h3 class="text-xl font-semibold text-white mb-6">Your Podcast is Ready!</h3>
+                            <audio controls class="w-full mb-4">
+                                <source src="${currentAudioUrl}" type="audio/mpeg">
+                            </audio>
+                            <button onclick="downloadAudio()" class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors">
+                                Download Audio
+                            </button>
+                        </div>
+                    </div>
+                `;
+                switchTab('audio');
+            } catch (error) {
+                alert('Error generating audio: ' + error.message);
+            } finally {
+                btn.innerHTML = 'Convert to Audio';
+                btn.disabled = false;
+            }
+        }
+
+        function downloadAudio() {
+            const a = document.createElement('a');
+            a.href = currentAudioUrl;
+            a.download = 'podcast.mp3';
+            a.click();
+        }
+    </script>
+</body>
+</html>
