@@ -27,42 +27,89 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Missing required parameters: elevenLabsKey or text' });
     }
 
-    console.log('Calling ElevenLabs API...');
+    // Parse script to identify speakers and their lines
+    const lines = text.split('\n').filter(line => line.trim());
+    const segments = [];
     
-    const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
-      method: 'POST',
-      headers: {
-        'Accept': 'audio/mpeg',
-        'Content-Type': 'application/json',
-        'xi-api-key': elevenLabsKey,
-      },
-      body: JSON.stringify({
-        text: text,
-        model_id: 'eleven_turbo_v2_5',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.8,
-          style: 0.0,
-          use_speaker_boost: true
-        },
-      }),
-    });
+    // Voice mapping for different speakers
+    const voiceMap = {
+      'host 1': '21m00Tcm4TlvDq8ikWAM', // Rachel - female
+      'host 2': 'VR6AewLTigWG4xSOukaG', // Arnold - male
+      'narrator': '21m00Tcm4TlvDq8ikWAM', // Rachel
+      'interviewer': 'VR6AewLTigWG4xSOukaG', // Arnold
+      'expert': '21m00Tcm4TlvDq8ikWAM', // Rachel
+      'default': '21m00Tcm4TlvDq8ikWAM' // Default voice
+    };
 
-    console.log('ElevenLabs response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('ElevenLabs error:', errorText);
-      return res.status(response.status).json({ 
-        error: `ElevenLabs API error (${response.status}): ${errorText}`,
-        details: errorText 
-      });
+    // Parse each line to extract speaker and content
+    for (const line of lines) {
+      const speakerMatch = line.match(/^(.*?):\s*(.+)$/);
+      if (speakerMatch) {
+        const speaker = speakerMatch[1].toLowerCase().trim();
+        const content = speakerMatch[2].trim();
+        
+        // Find matching voice
+        let voiceId = voiceMap.default;
+        for (const [key, value] of Object.entries(voiceMap)) {
+          if (speaker.includes(key)) {
+            voiceId = value;
+            break;
+          }
+        }
+        
+        segments.push({ voiceId, text: content });
+      } else if (line.trim()) {
+        // No speaker label, use default voice
+        segments.push({ voiceId: voiceMap.default, text: line.trim() });
+      }
     }
 
-    const audioBuffer = await response.arrayBuffer();
-    const base64Audio = Buffer.from(audioBuffer).toString('base64');
+    console.log(`Parsed ${segments.length} segments from script`);
+
+    // Generate audio for each segment
+    const audioSegments = [];
     
-    console.log('Audio generated successfully, size:', base64Audio.length);
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      console.log(`Generating audio for segment ${i + 1}/${segments.length} with voice ${segment.voiceId}`);
+      
+      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${segment.voiceId}`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': elevenLabsKey,
+        },
+        body: JSON.stringify({
+          text: segment.text,
+          model_id: 'eleven_turbo_v2_5',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.8,
+            style: 0.0,
+            use_speaker_boost: true
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`ElevenLabs error for segment ${i}:`, errorText);
+        return res.status(response.status).json({ 
+          error: `ElevenLabs API error (${response.status}): ${errorText}`,
+          details: errorText 
+        });
+      }
+
+      const audioBuffer = await response.arrayBuffer();
+      audioSegments.push(Buffer.from(audioBuffer));
+    }
+
+    // Concatenate all audio segments
+    const fullAudio = Buffer.concat(audioSegments);
+    const base64Audio = fullAudio.toString('base64');
+    
+    console.log('Audio generated successfully, total size:', base64Audio.length);
 
     return res.status(200).json({ audio: base64Audio });
 
