@@ -343,11 +343,13 @@
                     pdfFileData = null;
                 }
                 
+                // Update both the display and the editor
                 document.getElementById('scriptContent').innerHTML = `
                     <div class="bg-white/10 rounded-lg p-6 max-h-96 overflow-y-auto text-left">
                         <pre class="text-white whitespace-pre-wrap font-sans">${currentScript}</pre>
                     </div>
                 `;
+                document.getElementById('scriptEditor').value = currentScript;
                 document.getElementById('audioBtn').classList.remove('hidden');
                 switchTab('script');
             } catch (error) {
@@ -437,6 +439,27 @@
             a.href = currentAudioUrl;
             a.download = 'podcast.mp3';
             a.click();
+        }
+
+        function useCustomScript() {
+            const customScript = document.getElementById('scriptEditor').value.trim();
+            
+            if (!customScript) {
+                alert('Please enter a script first');
+                return;
+            }
+            
+            currentScript = customScript;
+            
+            // Update the display
+            document.getElementById('scriptContent').innerHTML = `
+                <div class="bg-white/10 rounded-lg p-6 max-h-96 overflow-y-auto text-left">
+                    <pre class="text-white whitespace-pre-wrap font-sans">${currentScript}</pre>
+                </div>
+            `;
+            
+            document.getElementById('audioBtn').classList.remove('hidden');
+            alert('Script loaded! Click "Convert to Audio" to generate your podcast.');
         }
     </script>
 </body>
