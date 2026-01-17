@@ -124,9 +124,9 @@
                             <div class="flex items-center gap-4">
                                 <label class="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg cursor-pointer transition-colors">
                                     <span id="uploadText">Choose File</span>
-                                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" class="hidden" onchange="handleFileUpload(event)">
+                                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" class="hidden" onchange="handleFileUpload(event)">
                                 </label>
-                                <span class="text-white/60 text-sm">Supports PDF, DOC, DOCX, XLS, XLSX</span>
+                                <span class="text-white/60 text-sm">Supports PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX</span>
                             </div>
                         </div>
 
@@ -295,6 +295,34 @@ You can use Host 1, Host 2, Narrator, Interviewer, or Expert as speaker labels."
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const text = XLSX.utils.sheet_to_csv(firstSheet);
                     document.getElementById('contentText').value = text;
+                } else if (fileType === 'pptx' || fileType === 'ppt') {
+                    // For PowerPoint files, we need to send to backend for processing
+                    const arrayBuffer = await file.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    let binary = '';
+                    for (let i = 0; i < uint8Array.length; i++) {
+                        binary += String.fromCharCode(uint8Array[i]);
+                    }
+                    const base64Data = btoa(binary);
+                    
+                    // Send to backend to extract text
+                    const response = await fetch('/api/parse-ppt', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            data: base64Data,
+                            filename: file.name
+                        }),
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to parse PowerPoint file');
+                    }
+                    
+                    const result = await response.json();
+                    document.getElementById('contentText').value = result.text;
                 } else {
                     const text = await file.text();
                     document.getElementById('contentText').value = text;
