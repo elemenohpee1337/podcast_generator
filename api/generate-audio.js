@@ -44,7 +44,7 @@ module.exports = async (req, res) => {
     // Parse each line to extract speaker and content
     for (const line of lines) {
       // Skip lines that are purely stage directions (in brackets or asterisks)
-      if (line.match(/^\s*[\[\*].*[\]\*]\s*$/)) {
+      if (line.match(/^\s*[\[\*]+.*[\]\*]+\s*$/)) {
         continue;
       }
       
@@ -53,22 +53,22 @@ module.exports = async (req, res) => {
         continue;
       }
       
-      const speakerMatch = line.match(/^(.*?):\s*(.+)$/);
+      const speakerMatch = line.match(/^\*?\*?(.*?):\*?\*?\s*(.+)$/);
       if (speakerMatch) {
         const speaker = speakerMatch[1].toLowerCase().trim();
         
         // Skip if the speaker label itself is a stage direction
-        if (speaker.match(/[\[\*]/)) {
+        if (speaker.match(/[\[\]]/)) {
           continue;
         }
         
         let content = speakerMatch[2].trim();
         
         // Remove all stage directions:
-        // - Anything in asterisks: *laughs*, **bold text**
         // - Anything in square brackets: [SOUND EFFECT: ...], [INTRO MUSIC: ...]
-        content = content.replace(/\*\*?[^*]+\*\*?/g, ''); // Remove *text* and **text**
-        content = content.replace(/\[[^\]]+\]/g, ''); // Remove [text]
+        content = content.replace(/\[[^\]]+\]/g, '');
+        // - Anything in single or double asterisks: *laughs*, **bold**
+        content = content.replace(/\*+([^*]+)\*+/g, '$1'); // Keep the text, remove asterisks
         content = content.trim();
         
         // Skip empty lines after removing stage directions
@@ -84,13 +84,13 @@ module.exports = async (req, res) => {
         }
         
         segments.push({ voiceId, text: content });
-      } else if (line.trim()) {
-        // No speaker label, use default voice
+      } else if (line.trim() && !line.match(/^\s*[\[\*]/)) {
+        // No speaker label, use default voice (but skip stage direction lines)
         let content = line.trim();
         
-        // Remove stage directions from non-speaker lines too
-        content = content.replace(/\*\*?[^*]+\*\*?/g, '');
+        // Remove stage directions
         content = content.replace(/\[[^\]]+\]/g, '');
+        content = content.replace(/\*+([^*]+)\*+/g, '$1');
         content = content.trim();
         
         if (content) {
