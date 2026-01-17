@@ -83,6 +83,24 @@
                 <div id="content-tab" class="tab-content">
                     <div class="space-y-6">
                         <div>
+                            <label class="block text-white mb-2 font-medium">Scrape Webpage</label>
+                            <div class="flex gap-2">
+                                <input type="url" id="urlInput" placeholder="https://example.com/article" 
+                                    class="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-400">
+                                <button onclick="scrapeWebpage()" id="scrapeBtn" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
+                                    Scrape
+                                </button>
+                            </div>
+                            <p class="text-white/60 text-xs mt-1">Enter a URL to extract content from a webpage</p>
+                        </div>
+
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1 border-t border-white/20"></div>
+                            <span class="text-white/60 text-sm">OR</span>
+                            <div class="flex-1 border-t border-white/20"></div>
+                        </div>
+
+                        <div>
                             <label class="block text-white mb-2 font-medium">Upload File</label>
                             <div class="flex items-center gap-4">
                                 <label class="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg cursor-pointer transition-colors">
@@ -93,8 +111,14 @@
                             </div>
                         </div>
 
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1 border-t border-white/20"></div>
+                            <span class="text-white/60 text-sm">OR</span>
+                            <div class="flex-1 border-t border-white/20"></div>
+                        </div>
+
                         <div>
-                            <label class="block text-white mb-2 font-medium">Or Paste Content</label>
+                            <label class="block text-white mb-2 font-medium">Paste Content</label>
                             <textarea id="contentText" placeholder="Paste your text, article, or content here..." 
                                 class="w-full h-64 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-400 resize-none"></textarea>
                         </div>
@@ -460,6 +484,57 @@ You can use Host 1, Host 2, Narrator, Interviewer, or Expert as speaker labels."
             a.href = currentAudioUrl;
             a.download = 'podcast.mp3';
             a.click();
+        }
+
+        async function scrapeWebpage() {
+            const url = document.getElementById('urlInput').value.trim();
+            
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            // Basic URL validation
+            try {
+                new URL(url);
+            } catch (e) {
+                alert('Please enter a valid URL (e.g., https://example.com)');
+                return;
+            }
+
+            const btn = document.getElementById('scrapeBtn');
+            btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            btn.disabled = true;
+
+            try {
+                console.log('Scraping URL:', url);
+                
+                const response = await fetch('/api/scrape-webpage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Scraping failed (${response.status})`);
+                }
+
+                const data = await response.json();
+                console.log('Scraped content length:', data.content.length);
+                
+                document.getElementById('contentText').value = data.content;
+                alert('Webpage scraped successfully! Content has been loaded.');
+                
+            } catch (error) {
+                console.error('Scraping error:', error);
+                alert('Error scraping webpage: ' + error.message);
+            } finally {
+                btn.innerHTML = 'Scrape';
+                btn.disabled = false;
+            }
         }
     </script>
 </body>
