@@ -33,11 +33,11 @@ module.exports = async (req, res) => {
     
     // Voice mapping for different speakers
     const voiceMap = {
-      'host 1': '21m00Tcm4TlvDq8ikWAM', // Rachel - female (default for now, update when you create new voice)
-      'host 2': '1tRZwYXsGRJWHyvbpdbB', // Your custom voice (updated)
-      'narrator': '21m00Tcm4TlvDq8ikWAM', // Rachel
-      'interviewer': '1tRZwYXsGRJWHyvbpdbB', // Your custom voice (updated)
-      'expert': '21m00Tcm4TlvDq8ikWAM', // Rachel
+      'host 1': '21m00Tcm4TlvDq8ikWAM', // Lily
+      'host 2': '1tRZwYXsGRJWHyvbpdbB', // Simon
+      'narrator': '21m00Tcm4TlvDq8ikWAM', // Lily
+      'interviewer': '1tRZwYXsGRJWHyvbpdbB', // Simon
+      'expert': '21m00Tcm4TlvDq8ikWAM', // Lily
       'default': '21m00Tcm4TlvDq8ikWAM' // Default voice
     };
 
