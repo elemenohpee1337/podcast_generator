@@ -164,6 +164,16 @@
                             </div>
                         </div>
 
+                        <div>
+                            <label class="block text-white mb-2 font-medium">Podcast Length</label>
+                            <select id="podcastLength" class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-purple-400">
+                                <option value="short">Short (3-5 minutes)</option>
+                                <option value="medium" selected>Medium (8-12 minutes)</option>
+                                <option value="long">Long (15-20 minutes)</option>
+                                <option value="detailed">Very Detailed (25-30 minutes)</option>
+                            </select>
+                        </div>
+
                         <button onclick="generateScript()" id="generateBtn" 
                             class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2">
                             Generate Podcast Script
@@ -362,6 +372,15 @@ You can use Host 1, Host 2, Narrator, Interviewer, or Expert as speaker labels."
                     storytelling: 'Create a narrative-driven podcast script that tells the story of this content in an engaging, dramatic way.',
                 };
 
+                const lengthInstructions = {
+                    short: 'about 3-5 minutes when read aloud',
+                    medium: 'about 8-12 minutes when read aloud. Include detailed discussion and examples',
+                    long: 'about 15-20 minutes when read aloud. Include comprehensive coverage with detailed explanations and multiple perspectives',
+                    detailed: 'about 25-30 minutes when read aloud. Provide in-depth analysis, detailed examples, and thorough exploration of all aspects'
+                };
+
+                const podcastLength = document.getElementById('podcastLength').value;
+
                 let messages = [];
                 if (pdfFileData) {
                     console.log('Sending document to backend, size:', pdfFileData.base64.length);
@@ -379,14 +398,14 @@ You can use Host 1, Host 2, Narrator, Interviewer, or Expert as speaker labels."
                             },
                             {
                                 type: 'text',
-                                text: `${stylePrompts[selectedStyle]}\n\nFormat the script clearly with speaker labels (e.g., "Host 1:", "Host 2:" or "Narrator:"). Make it engaging, conversational, and about 3-5 minutes when read aloud.`,
+                                text: `${stylePrompts[selectedStyle]}\n\nFormat the script clearly with speaker labels (e.g., "Host 1:", "Host 2:" or "Narrator:"). Make it engaging and conversational, ${lengthInstructions[podcastLength]}.`,
                             },
                         ],
                     }];
                 } else {
                     messages = [{
                         role: 'user',
-                        content: `${stylePrompts[selectedStyle]}\n\nContent to transform into a podcast:\n${contentText.slice(0, 8000)}\n\nFormat the script clearly with speaker labels (e.g., "Host 1:", "Host 2:" or "Narrator:"). Make it engaging, conversational, and about 3-5 minutes when read aloud.`,
+                        content: `${stylePrompts[selectedStyle]}\n\nContent to transform into a podcast:\n${contentText.slice(0, 8000)}\n\nFormat the script clearly with speaker labels (e.g., "Host 1:", "Host 2:" or "Narrator:"). Make it engaging and conversational, ${lengthInstructions[podcastLength]}.`,
                     }];
                 }
 
