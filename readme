@@ -1,0 +1,290 @@
+# The SecPrax Podcast Generator
+
+Turn any content into engaging audio podcasts with AI-powered script generation and multi-voice narration.
+
+## Features
+
+- 🌐 **Multiple Input Methods**
+  - Scrape webpages
+  - Upload files (PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX)
+  - Paste text directly
+
+- 🎙️ **AI Script Generation**
+  - 4 podcast styles: Two-Host Conversation, Solo Narrator, Interview, Storytelling
+  - 2 length options: Short (3-5 min), Longer (8-12 min)
+  - Powered by Claude AI (Sonnet 4)
+
+- 🎬 **Professional Audio Production**
+  - Multi-voice narration with ElevenLabs
+  - Custom voices: Lily & Simon
+  - Automatic stage direction removal
+  - Download as MP3
+
+- ✏️ **Full Editing Control**
+  - Edit generated scripts before conversion
+  - Paste your own pre-written scripts
+  - Manual script customization
+
+## Project Structure
+
+```
+secprax-podcast-generator/
+├── index.html              # Main application UI
+├── vercel.json            # Vercel configuration
+├── package.json           # Dependencies
+└── api/                   # Serverless functions
+    ├── generate-script.js # Claude API integration
+    ├── generate-audio.js  # ElevenLabs TTS integration
+    ├── scrape-webpage.js  # Web scraping
+    └── parse-ppt.js       # PowerPoint parser
+```
+
+## Setup & Installation
+
+### Prerequisites
+
+- Node.js (for local development)
+- Vercel account (for deployment)
+- API Keys:
+  - [Claude API Key](https://console.anthropic.com/)
+  - [ElevenLabs API Key](https://elevenlabs.io/app/settings/api-keys)
+
+### Local Development
+
+1. **Clone or download the project**
+   ```bash
+   mkdir secprax-podcast-generator
+   cd secprax-podcast-generator
+   ```
+
+2. **Create the folder structure**
+   ```bash
+   mkdir api
+   ```
+
+3. **Copy all files** from the artifacts into their respective locations
+
+4. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+5. **Run locally** (requires Vercel CLI)
+   ```bash
+   npm install -g vercel
+   vercel dev
+   ```
+
+6. **Open in browser**
+   ```
+   http://localhost:3000
+   ```
+
+## Deployment to Vercel
+
+### Option 1: Deploy via GitHub (Recommended)
+
+1. **Create a GitHub repository**
+   - Go to https://github.com/new
+   - Create a new repository
+   - Upload all project files
+
+2. **Connect to Vercel**
+   - Go to https://vercel.com
+   - Click "Add New" → "Project"
+   - Import from GitHub
+   - Select your repository
+   - Click "Deploy"
+
+3. **Vercel will auto-detect:**
+   - Serverless functions in `/api` folder
+   - Configuration from `vercel.json`
+   - Dependencies from `package.json`
+
+### Option 2: Deploy via Vercel CLI
+
+1. **Install Vercel CLI**
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Deploy**
+   ```bash
+   vercel --prod
+   ```
+
+3. **Follow the prompts** to complete deployment
+
+## Configuration
+
+### API Keys
+
+Once deployed, users need to add their API keys in the app:
+
+1. Click the **Settings** ⚙️ icon in the top-right
+2. Enter your **Claude API Key**
+3. Enter your **ElevenLabs API Key**
+4. Keys are saved locally in browser localStorage
+
+### Voice Customization
+
+To change voices, edit `api/generate-audio.js`:
+
+```javascript
+const voiceMap = {
+  'lily': 'YOUR_ELEVENLABS_VOICE_ID',
+  'simon': 'YOUR_ELEVENLABS_VOICE_ID',
+  // ... other voices
+};
+```
+
+Get voice IDs from your ElevenLabs account.
+
+## Usage
+
+### Basic Workflow
+
+1. **Input Content**
+   - Scrape a webpage URL
+   - Upload a document
+   - Or paste text directly
+
+2. **Choose Settings**
+   - Select podcast style
+   - Choose length (Short or Longer)
+
+3. **Generate Script**
+   - Click "Generate Podcast Script"
+   - Wait for AI to create the script
+   - Edit if needed in the Script tab
+
+4. **Convert to Audio**
+   - Click "Convert to Audio"
+   - Listen to the preview
+   - Download the MP3
+
+### Supported File Formats
+
+- **Documents**: PDF, DOC, DOCX
+- **Spreadsheets**: XLS, XLSX
+- **Presentations**: PPT, PPTX
+- **Text**: TXT
+
+### File Size Limits
+
+- Maximum file size: **5MB**
+- For larger files, copy/paste the text content instead
+
+## Technical Details
+
+### Stack
+
+- **Frontend**: HTML, Tailwind CSS, Vanilla JavaScript
+- **Backend**: Vercel Serverless Functions (Node.js)
+- **AI Services**:
+  - Claude Sonnet 4 (Script generation)
+  - ElevenLabs (Text-to-speech)
+- **Libraries**:
+  - jsdom (Web scraping)
+  - jszip (PowerPoint parsing)
+  - mammoth (Word document parsing)
+  - xlsx (Excel parsing)
+
+### Timeout Limits
+
+- Vercel free tier: 10 seconds per function
+- Configured timeout: 60 seconds (for all functions)
+- If timeouts occur, use "Short" podcast length
+
+### Browser Compatibility
+
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- JavaScript required
+- localStorage for API key persistence
+
+## Troubleshooting
+
+### Script Generation Times Out
+- Use "Short" length instead of "Longer"
+- Reduce content size
+- Check Claude API credits
+
+### Audio Generation Fails
+- Verify ElevenLabs API key is correct
+- Check ElevenLabs account has credits
+- Ensure script isn't empty
+
+### File Upload Errors
+- Check file size is under 5MB
+- Verify file format is supported
+- Try copying/pasting content instead
+
+### Voice Not Working
+- Verify voice IDs in `api/generate-audio.js`
+- Check voices exist in your ElevenLabs account
+- Try with default voices first
+
+## Cost Estimates
+
+### Claude API
+- ~$0.003 per script generation (short)
+- ~$0.006 per script generation (longer)
+
+### ElevenLabs
+- Varies by plan and voice
+- Professional Voice Clone: ~$0.24 per 1000 characters
+- Standard voices: Lower cost
+
+### Vercel Hosting
+- Free tier: 100GB bandwidth, serverless function executions
+- Upgrade if needed for higher usage
+
+## Customization
+
+### Change Default Styles
+Edit the style descriptions in `index.html`:
+```javascript
+const stylePrompts = {
+  conversation: 'Your custom prompt...',
+  // ...
+};
+```
+
+### Add More Voices
+Edit `api/generate-audio.js`:
+```javascript
+const voiceMap = {
+  'newhost': 'VOICE_ID_HERE',
+  // ...
+};
+```
+
+### Modify UI Colors
+Edit Tailwind classes in `index.html` or customize the gradient:
+```html
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+```
+
+## Support
+
+For issues or questions:
+1. Check the troubleshooting section
+2. Review Vercel deployment logs
+3. Verify API keys and credits
+4. Check browser console for errors
+
+## License
+
+This is a custom-built application. Modify and use as needed.
+
+## Credits
+
+- Built with Claude AI assistance
+- UI powered by Tailwind CSS
+- Voices by ElevenLabs
+- Deployed on Vercel
+
+---
+
+**Version**: 1.0.0  
+**Last Updated**: 2026-01-17
