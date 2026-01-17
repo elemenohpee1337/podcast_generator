@@ -48,7 +48,7 @@
                         </label>
                         <input type="password" id="claudeKey" placeholder="sk-ant-..." 
                             class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-400">
-                        <p class="text-white/60 text-xs mt-1">Saved locally in your browser</p>
+                        <p class="text-white/60 text-xs mt-1">Saved locally in your browser - used to generate podcast scripts</p>
                     </div>
                     <div>
                         <label class="block text-white/80 mb-2">
@@ -59,7 +59,7 @@
                         </label>
                         <input type="password" id="elevenLabsKey" placeholder="Enter your ElevenLabs API key"
                             class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-400">
-                        <p class="text-white/60 text-xs mt-1">Saved locally in your browser</p>
+                        <p class="text-white/60 text-xs mt-1">Saved locally in your browser - used to generate audio</p>
                     </div>
                 </div>
             </div>
@@ -131,10 +131,24 @@
                 <!-- Script Tab -->
                 <div id="script-tab" class="tab-content hidden">
                     <div class="space-y-4">
-                        <div id="scriptContent" class="text-center py-12 text-white/60">
-                            No script generated yet. Go to the Content tab to create one.
+                        <!-- Success message (only shows when script is generated) -->
+                        <div id="scriptContent" class="hidden"></div>
+                        
+                        <!-- Editable Script Area (always visible) -->
+                        <div>
+                            <label class="block text-white mb-2 font-medium">Edit or Paste Your Script</label>
+                            <textarea id="scriptEditor" placeholder="Paste your podcast script here, or generate one from the Content tab...
+
+Format example:
+Host 1: Welcome to the show!
+Host 2: Thanks for having me.
+
+You can use Host 1, Host 2, Narrator, Interviewer, or Expert as speaker labels."
+                                class="w-full h-96 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-400 resize-none font-mono text-sm"></textarea>
+                            <p class="text-white/60 text-xs mt-1">Tip: Use "Host 1:", "Host 2:", "Narrator:" etc. for different speakers. Stage directions in [brackets] or *asterisks* will be removed from audio.</p>
                         </div>
-                        <button onclick="generateAudio()" id="audioBtn" class="hidden w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2">
+                        
+                        <button onclick="generateAudio()" id="audioBtn" class="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2">
                             Convert to Audio
                         </button>
                     </div>
@@ -206,10 +220,10 @@
             if (!file) return;
 
             // Check file size (limit to 5MB to avoid timeouts)
-            const maxSize = 5 * 1024 * 1024; // 5MB
+            const maxSize = 5 * 1024 * 1024;
             if (file.size > maxSize) {
                 alert('File is too large. Please use files smaller than 5MB to avoid processing timeouts. For large documents, try copying and pasting the text instead.');
-                event.target.value = ''; // Clear the file input
+                event.target.value = '';
                 return;
             }
 
@@ -296,7 +310,6 @@
                             },
                         ],
                     }];
-                    // Keep PDF data for potential retries, clear after successful generation
                 } else {
                     messages = [{
                         role: 'user',
@@ -308,7 +321,6 @@
                 console.log('API Key present:', !!claudeKey);
                 console.log('Calling URL:', window.location.origin + '/api/generate-script');
                 
-                // Call our Vercel function instead of Netlify
                 const response = await fetch('/api/generate-script', {
                     method: 'POST',
                     headers: {
@@ -346,7 +358,7 @@
                 // Update the editor with generated script
                 document.getElementById('scriptEditor').value = currentScript;
                 
-                // Show preview of generated script
+                // Show success message
                 document.getElementById('scriptContent').innerHTML = `
                     <div class="bg-green-500/20 border border-green-500/40 rounded-lg p-4 mb-4">
                         <p class="text-green-100 text-sm">✅ Script generated! You can edit it below or convert to audio directly.</p>
