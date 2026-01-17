@@ -33,8 +33,10 @@ module.exports = async (req, res) => {
     
     // Voice mapping for different speakers
     const voiceMap = {
-      'host 1': '21m00Tcm4TlvDq8ikWAM', // Lily
-      'host 2': 'rIiq4A6kQujGi4SUmYhQ', // Simon
+      'lily': '21m00Tcm4TlvDq8ikWAM', // Lily
+      'simon': 'rIiq4A6kQujGi4SUmYhQ', // Simon
+      'host 1': '21m00Tcm4TlvDq8ikWAM', // Lily (fallback)
+      'host 2': 'rIiq4A6kQujGi4SUmYhQ', // Simon (fallback)
       'narrator': '21m00Tcm4TlvDq8ikWAM', // Lily
       'interviewer': 'rIiq4A6kQujGi4SUmYhQ', // Simon
       'expert': '21m00Tcm4TlvDq8ikWAM', // Lily
