@@ -5,6 +5,15 @@
     },
     "api/generate-audio.js": {
       "maxDuration": 60
+    },
+    "api/scrape-webpage.js": {
+      "maxDuration": 60
+    },
+    "api/parse-ppt.js": {
+      "maxDuration": 60
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
