@@ -8,9 +8,6 @@
     },
     "api/scrape-webpage.js": {
       "maxDuration": 60
-    },
-    "api/parse-ppt.js": {
-      "maxDuration": 60
     }
   },
   "rewrites": [
