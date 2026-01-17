@@ -364,10 +364,10 @@ You can use Host 1, Host 2, Narrator, Interviewer, or Expert as speaker labels."
 
             try {
                 const stylePrompts = {
-                    conversation: 'Create an engaging two-host podcast conversation discussing this content. Host 1 should be curious and ask questions, while Host 2 explains and provides insights. Make it natural and conversational with some humor.',
-                    narrator: 'Create a compelling single-narrator podcast script that summarizes and explores this content in an engaging, accessible way.',
-                    interview: 'Create an interview-style podcast where an interviewer asks probing questions and an expert responds with detailed insights about this content.',
-                    storytelling: 'Create a narrative-driven podcast script that tells the story of this content in an engaging, dramatic way.',
+                    conversation: 'Create an engaging two-host podcast conversation discussing this content. Lily should be curious and ask questions, while Simon explains and provides insights. Make it natural and conversational with some humor. Use "Lily:" and "Simon:" as speaker labels.',
+                    narrator: 'Create a compelling single-narrator podcast script that summarizes and explores this content in an engaging, accessible way. Use "Narrator:" as the speaker label.',
+                    interview: 'Create an interview-style podcast where Lily (the interviewer) asks probing questions and Simon (the expert) responds with detailed insights about this content. Use "Lily:" and "Simon:" as speaker labels.',
+                    storytelling: 'Create a narrative-driven podcast script that tells the story of this content in an engaging, dramatic way. Use "Narrator:" as the speaker label.',
                 };
 
                 const lengthInstructions = {
@@ -394,14 +394,14 @@ You can use Host 1, Host 2, Narrator, Interviewer, or Expert as speaker labels."
                             },
                             {
                                 type: 'text',
-                                text: `${stylePrompts[selectedStyle]}\n\nFormat the script clearly with speaker labels (e.g., "Host 1:", "Host 2:" or "Narrator:"). Make it engaging and conversational, ${lengthInstructions[podcastLength]}.`,
+                                text: `${stylePrompts[selectedStyle]}\n\nFormat the script clearly with the speaker labels mentioned above. Make it engaging and conversational, ${lengthInstructions[podcastLength]}.`,
                             },
                         ],
                     }];
                 } else {
                     messages = [{
                         role: 'user',
-                        content: `${stylePrompts[selectedStyle]}\n\nContent to transform into a podcast:\n${contentText.slice(0, 8000)}\n\nFormat the script clearly with speaker labels (e.g., "Host 1:", "Host 2:" or "Narrator:"). Make it engaging and conversational, ${lengthInstructions[podcastLength]}.`,
+                        content: `${stylePrompts[selectedStyle]}\n\nContent to transform into a podcast:\n${contentText.slice(0, 8000)}\n\nFormat the script clearly with the speaker labels mentioned above. Make it engaging and conversational, ${lengthInstructions[podcastLength]}.`,
                     }];
                 }
 
