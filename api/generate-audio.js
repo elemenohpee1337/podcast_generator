@@ -64,11 +64,23 @@ module.exports = async (req, res) => {
         
         let content = speakerMatch[2].trim();
         
-        // Remove all stage directions:
-        // - Anything in square brackets: [SOUND EFFECT: ...], [INTRO MUSIC: ...]
+        // Remove stage directions in square brackets only: [SOUND EFFECT: ...], [INTRO MUSIC: ...]
         content = content.replace(/\[[^\]]+\]/g, '');
-        // - Anything in single or double asterisks: *laughs*, **bold**
-        content = content.replace(/\*+([^*]+)\*+/g, '$1'); // Keep the text, remove asterisks
+        
+        // Remove stage directions in asterisks ONLY if they look like actions (multiple words, descriptive)
+        // This preserves emphasis like *the* or *an* but removes *laughs*, *dramatic pause*, etc.
+        content = content.replace(/\*([a-z\s]{2,})\*/gi, (match, inner) => {
+          // If it's 2+ words or looks like an action, remove it
+          if (inner.trim().split(/\s+/).length > 1 || inner.match(/laugh|pause|sigh|chuckle|gasp/i)) {
+            return '';
+          }
+          // Otherwise keep it (it's emphasis)
+          return match;
+        });
+        
+        // Remove double asterisks for bold (but keep the text)
+        content = content.replace(/\*\*([^*]+)\*\*/g, '$1');
+        
         content = content.trim();
         
         // Skip empty lines after removing stage directions
@@ -90,7 +102,13 @@ module.exports = async (req, res) => {
         
         // Remove stage directions
         content = content.replace(/\[[^\]]+\]/g, '');
-        content = content.replace(/\*+([^*]+)\*+/g, '$1');
+        content = content.replace(/\*([a-z\s]{2,})\*/gi, (match, inner) => {
+          if (inner.trim().split(/\s+/).length > 1 || inner.match(/laugh|pause|sigh|chuckle|gasp/i)) {
+            return '';
+          }
+          return match;
+        });
+        content = content.replace(/\*\*([^*]+)\*\*/g, '$1');
         content = content.trim();
         
         if (content) {
