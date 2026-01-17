@@ -22,7 +22,8 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Call Claude API
+    // Call Claude API with adjusted max_tokens based on expected length
+    // Longer podcasts need more tokens, but too many can cause timeouts
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -32,7 +33,7 @@ module.exports = async (req, res) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 4000,
+        max_tokens: 3000, // Reduced from 4000 to help prevent timeouts
         messages: messages,
       }),
     });
