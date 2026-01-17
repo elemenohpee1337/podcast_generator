@@ -168,10 +168,8 @@
                             <label class="block text-white mb-2 font-medium">Podcast Length</label>
                             <select id="podcastLength" class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-purple-400">
                                 <option value="short">Short (3-5 minutes)</option>
-                                <option value="medium" selected>Medium (8-12 minutes)</option>
-                                <option value="long">Long (12-15 minutes)</option>
+                                <option value="medium" selected>Longer (8-12 minutes)</option>
                             </select>
-                            <p class="text-white/60 text-xs mt-1">Note: Longer podcasts may take more time to generate</p>
                         </div>
 
                         <button onclick="generateScript()" id="generateBtn" 
@@ -375,7 +373,6 @@ You can use Host 1, Host 2, Narrator, Interviewer, or Expert as speaker labels."
                 const lengthInstructions = {
                     short: 'about 3-5 minutes when read aloud',
                     medium: 'about 8-12 minutes when read aloud. Include detailed discussion and examples',
-                    long: 'about 12-15 minutes when read aloud. Include comprehensive coverage with detailed explanations',
                 };
 
                 const podcastLength = document.getElementById('podcastLength').value;
