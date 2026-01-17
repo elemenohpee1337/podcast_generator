@@ -33,14 +33,14 @@ module.exports = async (req, res) => {
     
     // Voice mapping for different speakers
     const voiceMap = {
-      'lily': '21m00Tcm4TlvDq8ikWAM', // Lily
-      'simon': 'rIiq4A6kQujGi4SUmYhQ', // Simon
-      'host 1': '21m00Tcm4TlvDq8ikWAM', // Lily (fallback)
-      'host 2': 'rIiq4A6kQujGi4SUmYhQ', // Simon (fallback)
-      'narrator': '21m00Tcm4TlvDq8ikWAM', // Lily
-      'interviewer': 'rIiq4A6kQujGi4SUmYhQ', // Simon
-      'expert': '21m00Tcm4TlvDq8ikWAM', // Lily
-      'default': '21m00Tcm4TlvDq8ikWAM' // Default voice
+      'lily': 'QA2UN3DZA5Y5E9J439k0', // Lily
+      'simon': 'qM0eRxE5jMv15AlBtO2a', // Simon
+      'host 1': 'QA2UN3DZA5Y5E9J439k0', // Lily (fallback)
+      'host 2': 'qM0eRxE5jMv15AlBtO2a', // Simon (fallback)
+      'narrator': 'QA2UN3DZA5Y5E9J439k0', // Lily
+      'interviewer': 'qM0eRxE5jMv15AlBtO2a', // Simon
+      'expert': 'QA2UN3DZA5Y5E9J439k0', // Lily
+      'default': 'QA2UN3DZA5Y5E9J439k0' // Default voice
     };
 
     // Parse each line to extract speaker and content
