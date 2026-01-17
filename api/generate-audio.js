@@ -43,13 +43,33 @@ module.exports = async (req, res) => {
 
     // Parse each line to extract speaker and content
     for (const line of lines) {
+      // Skip lines that are purely stage directions (in brackets or asterisks)
+      if (line.match(/^\s*[\[\*].*[\]\*]\s*$/)) {
+        continue;
+      }
+      
+      // Skip markdown headers
+      if (line.match(/^#+\s/)) {
+        continue;
+      }
+      
       const speakerMatch = line.match(/^(.*?):\s*(.+)$/);
       if (speakerMatch) {
         const speaker = speakerMatch[1].toLowerCase().trim();
+        
+        // Skip if the speaker label itself is a stage direction
+        if (speaker.match(/[\[\*]/)) {
+          continue;
+        }
+        
         let content = speakerMatch[2].trim();
         
-        // Remove stage directions in asterisks (e.g., *laughs*, *dramatic pause*)
-        content = content.replace(/\*[^*]+\*/g, '').trim();
+        // Remove all stage directions:
+        // - Anything in asterisks: *laughs*, **bold text**
+        // - Anything in square brackets: [SOUND EFFECT: ...], [INTRO MUSIC: ...]
+        content = content.replace(/\*\*?[^*]+\*\*?/g, ''); // Remove *text* and **text**
+        content = content.replace(/\[[^\]]+\]/g, ''); // Remove [text]
+        content = content.trim();
         
         // Skip empty lines after removing stage directions
         if (!content) continue;
@@ -67,8 +87,12 @@ module.exports = async (req, res) => {
       } else if (line.trim()) {
         // No speaker label, use default voice
         let content = line.trim();
+        
         // Remove stage directions from non-speaker lines too
-        content = content.replace(/\*[^*]+\*/g, '').trim();
+        content = content.replace(/\*\*?[^*]+\*\*?/g, '');
+        content = content.replace(/\[[^\]]+\]/g, '');
+        content = content.trim();
+        
         if (content) {
           segments.push({ voiceId: voiceMap.default, text: content });
         }
