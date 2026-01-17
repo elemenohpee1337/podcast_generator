@@ -296,7 +296,7 @@ You can use Host 1, Host 2, Narrator, Interviewer, or Expert as speaker labels."
                     const text = XLSX.utils.sheet_to_csv(firstSheet);
                     document.getElementById('contentText').value = text;
                 } else if (fileType === 'pptx' || fileType === 'ppt') {
-                    // PowerPoint files - handle like PDFs, send to Claude API directly
+                    // PowerPoint files - parse on backend
                     const arrayBuffer = await file.arrayBuffer();
                     const uint8Array = new Uint8Array(arrayBuffer);
                     let binary = '';
@@ -304,12 +304,26 @@ You can use Host 1, Host 2, Narrator, Interviewer, or Expert as speaker labels."
                         binary += String.fromCharCode(uint8Array[i]);
                     }
                     const base64Data = btoa(binary);
-                    pdfFileData = { 
-                        base64: base64Data, 
-                        name: file.name,
-                        type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-                    };
-                    document.getElementById('contentText').value = `[PowerPoint File: ${file.name}]\nThis presentation will be processed when you generate the script.`;
+                    
+                    // Send to backend to extract text
+                    const response = await fetch('/api/parse-ppt', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            data: base64Data,
+                            filename: file.name
+                        }),
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to parse PowerPoint file');
+                    }
+                    
+                    const result = await response.json();
+                    document.getElementById('contentText').value = result.text;
                 } else {
                     const text = await file.text();
                     document.getElementById('contentText').value = text;
