@@ -73,7 +73,7 @@ module.exports = async (req, res) => {
         // This preserves emphasis like *the* or *an* but removes *laughs*, *dramatic pause*, etc.
         content = content.replace(/\*([a-z\s]{2,})\*/gi, (match, inner) => {
           // If it's 2+ words or looks like an action, remove it
-          if (inner.trim().split(/\s+/).length > 1 || inner.match(/laugh|pause|sigh|chuckle|gasp/i)) {
+          if (inner.trim().split(/\s+/).length > 1 || inner.match(/laugh|pause|sigh|chuckle|gasp|sarcastically|ironically|dramatically|whisper|shout|excited/i)) {
             return '';
           }
           // Otherwise keep it (it's emphasis)
@@ -105,7 +105,7 @@ module.exports = async (req, res) => {
         // Remove stage directions
         content = content.replace(/\[[^\]]+\]/g, '');
         content = content.replace(/\*([a-z\s]{2,})\*/gi, (match, inner) => {
-          if (inner.trim().split(/\s+/).length > 1 || inner.match(/laugh|pause|sigh|chuckle|gasp/i)) {
+          if (inner.trim().split(/\s+/).length > 1 || inner.match(/laugh|pause|sigh|chuckle|gasp|sarcastically|ironically|dramatically|whisper|shout|excited/i)) {
             return '';
           }
           return match;
